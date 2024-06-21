@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "552220718106",
+    "project_id": "pristaapp-32731",
+    "storage_bucket": "pristaapp-32731.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552220718106:android:3ab9c7945e8665fa0d8da3",
+        "android_client_info": {
+          "package_name": "com.prista.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "552220718106-hkd2ad4a64cvag69p69lcv8obucnqd2r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.prista.app",
+            "certificate_hash": "f2bb4faddaef62b5831cd5977982c93c2f4c393f"
+          }
+        },
+        {
+          "client_id": "552220718106-l4523fjsmeq8j4co6keb936a0lmfdjgg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.prista.app",
+            "certificate_hash": "b15ff8e5a38ad4e7b363fad46983edee63f4909a"
+          }
+        },
+        {
+          "client_id": "552220718106-fqpjm34v6q0o2l3oup2llvhb4j3i0npo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJxrAD4KisFuzaYyT2-SQI5JmEHGY5cBk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "552220718106-fqpjm34v6q0o2l3oup2llvhb4j3i0npo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "552220718106-9k3ft9g5sqr3mn16u3rv3sp3nuo7lim1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pristaApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
