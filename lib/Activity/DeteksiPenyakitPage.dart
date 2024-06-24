@@ -18,14 +18,16 @@ class DeteksiPenyakitPage extends StatefulWidget {
 }
 
 class _DeteksiPenyakitPageState extends State<DeteksiPenyakitPage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 0; // indeks untuk navigasi bawah
 
+  // daftar halaman untuk navigasi bawah
   final List<Widget> _pages = [
     DeteksiPenyakitPageContent(),
     DataPenyakitPage(),
     ProfilePage(),
   ];
 
+  // metode untuk menangani tap pada item navigasi bawah
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -35,7 +37,7 @@ class _DeteksiPenyakitPageState extends State<DeteksiPenyakitPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: _pages[_selectedIndex], //tampilkan halaman yang dipilih
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -59,6 +61,7 @@ class _DeteksiPenyakitPageState extends State<DeteksiPenyakitPage> {
   }
 }
 
+// konten halaman deteksi penyakit
 class DeteksiPenyakitPageContent extends StatefulWidget {
   const DeteksiPenyakitPageContent({Key? key}) : super(key: key);
 
@@ -67,7 +70,8 @@ class DeteksiPenyakitPageContent extends StatefulWidget {
       _DeteksiPenyakitPageContentState();
 }
 
-class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent> {
+class _DeteksiPenyakitPageContentState
+    extends State<DeteksiPenyakitPageContent> {
   late CameraController _camController;
   String? pathDir;
   bool _showCamera = false;
@@ -77,9 +81,11 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
   @override
   void initState() {
     super.initState();
-    initCamera();
-    _fetchUserName();
+    initCamera(); // inisialisasi kamera
+    _fetchUserName(); // mengambil nama pengguna dari firebase
   }
+
+  // metode untuk mengambil nama pengguna dari firebase
 
   Future<void> _fetchUserName() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -94,6 +100,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
     }
   }
 
+  // metode untuk inisialisasi kamera
   Future<void> initCamera() async {
     WidgetsFlutterBinding.ensureInitialized();
     final cameras = await availableCameras();
@@ -108,6 +115,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
     });
   }
 
+  // metode untuk mengambil gambar
   Future<String> takePicture() async {
     String filePath = "";
     try {
@@ -120,6 +128,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
     return filePath;
   }
 
+  // metode digunakan untuk memprediksi gambar
   Future<void> predict(String path) async {
     try {
       var prediction = await Tflite.runModelOnImage(
@@ -141,105 +150,107 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
     }
   }
 
+// metode memilih gambar dari galeri
   Future<void> pickImageFromGallery() async {
-  final ImagePicker picker = ImagePicker();
-  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-  if (image != null) {
-    pathDir = image.path;
-    await predict(pathDir!);
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        if (_predictionResult == null || _predictionResult!.isEmpty) {
-          return const Center(
-            child: Text(
-              "Tidak ada hasil prediksi.",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      pathDir = image.path;
+      await predict(pathDir!); // memproses gambar dan mendapatkan prediksi
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          if (_predictionResult == null || _predictionResult!.isEmpty) {
+            return const Center(
+              child: Text(
+                "Tidak ada hasil prediksi.",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }
+          var predictionData = _predictionResult!;
+          String label = predictionData[0]['label'];
+          double confidence = predictionData[0]['confidence'];
+
+          return Container(
+            height: 400,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
               ),
             ),
-          );
-        }
-        var predictionData = _predictionResult!;
-        String label = predictionData[0]['label'];
-        double confidence = predictionData[0]['confidence'];
-
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text(
-                  "Hasil Pengecekan",
-                  style: TextStyle(
-                    fontSize: 24,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Center(
+                  child: Text(
+                    "Hasil Pengecekan",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Poppins",
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     fontFamily: "Poppins",
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Poppins",
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                "Confidence: ${confidence.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontFamily: "Poppins",
-                ),
-              ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 115, 183, 86), // Warna tombol yang menarik
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(
-                      fontFamily: "Poppins",
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
+                const SizedBox(height: 5),
+                Text(
+                  "Confidence: ${confidence.toStringAsFixed(2)}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                    fontFamily: "Poppins",
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+                // const SizedBox(height: 20),
+                // Align(
+                //   alignment: Alignment.center,
+                //   child: ElevatedButton(
+                //     onPressed: () {
+                //       Navigator.pop(context);
+                //     },
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor:
+                //           const Color.fromARGB(255, 115, 183, 86), // Warna tombol
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(10),
+                //       ),
+                //     ),
+                //     child: const Text(
+                //       'Tutup',
+                //       style: TextStyle(
+                //         fontFamily: "Poppins",
+                //         fontSize: 16,
+                //         color: Colors.white,
+                //       ),
+                //     ),
+                //   ),
+                // ),
+              ],
+            ),
+          );
+        },
+      );
+    }
   }
-}
-
 
   @override
   void dispose() {
-    _camController.dispose();
+    _camController.dispose(); // hapus kontrol kamera saat tidak digunakan
     super.dispose();
   }
 
@@ -248,44 +259,48 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
-          'Halo, ${userName ?? '...'}',
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: _showCamera
+            ? const Text('') // Judul saat mode kamera aktif
+            : Text(
+                'Halo, ${userName ?? '...'}', // Nama pengguna atau teks default jika null
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
       ),
       body: Column(
-  children: [
-    if (!_showCamera)
-      const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Align(
-      alignment: Alignment.centerLeft,
-        child: Column(
-          children: [
-            Text(
-              'Selamat Datang di Chiscan',
-              style: TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        children: [
+          // tampilkan teks sambutan jika kamera tidak aktif
+          if (!_showCamera)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  children: [
+                    Text(
+                      'Selamat Datang di Chiscan',
+                      style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Deteksi Penyakit Cabai',
+                      style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Text(
-              'Deteksi Penyakit Cabai',
-              style: TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      ),
+          // tampilkan tombol untuk masuk ke mode kamera jika kamera tdk aktif
           if (!_showCamera)
             Container(
               width: double.infinity,
@@ -293,13 +308,13 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _showCamera = true;
+                    _showCamera = true; // mengaktifkan mode kamera
                   });
                 },
                 child: Container(
                   height: 150,
                   decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 115, 183, 86),
+                    color: Color.fromARGB(255, 115, 183, 86), //warna tombol
                   ),
                   child: const Center(
                     child: Text(
@@ -329,7 +344,8 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                               1 /
                               _camController.value.aspectRatio,
                           width: MediaQuery.of(context).size.width * 0.9,
-                          child: CameraPreview(_camController),
+                          child: CameraPreview(
+                              _camController), // menampilkan pratinjau kamera
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -340,10 +356,12 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                             onTap: () async {
                               if (!_camController.value.isTakingPicture) {
                                 pathDir = null;
-                                pathDir = await takePicture();
+                                pathDir =
+                                    await takePicture(); // mengambil kamera
                                 log("Path gambar: $pathDir");
                                 if (pathDir != null) {
-                                  await predict(pathDir!);
+                                  await predict(
+                                      pathDir!); // memproses gambar dan mendapatkan prediksi
                                   showModalBottomSheet(
                                     context: context,
                                     builder: (context) {
@@ -360,8 +378,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                                         );
                                       }
                                       var predictionData = _predictionResult!;
-                                      String label =
-                                          predictionData[0]['label'];
+                                      String label = predictionData[0]['label'];
                                       double confidence =
                                           predictionData[0]['confidence'];
 
@@ -383,16 +400,17 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Container(
-                                                  width: 60,
-                                                  height: 60,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[200],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  ),
-                                                ),
+                                                //kotak samping hasil
+                                                // Container(
+                                                //   width: 60,
+                                                //   height: 60,
+                                                //   decoration: BoxDecoration(
+                                                //     color: Colors.grey[200],
+                                                //     borderRadius:
+                                                //         BorderRadius.circular(
+                                                //             10),
+                                                //   ),
+                                                // ),
                                                 const SizedBox(width: 20),
                                                 Expanded(
                                                   child: Column(
@@ -402,8 +420,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                                                     children: [
                                                       Text(
                                                         label,
-                                                        style:
-                                                            const TextStyle(
+                                                        style: const TextStyle(
                                                           fontSize: 18,
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -438,7 +455,8 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                               width: MediaQuery.of(context).size.width * 0.4,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                color: const Color.fromARGB(255, 115, 183, 86),
+                                color: const Color.fromARGB(255, 115, 183,
+                                    86), //warna latar belakang tombol
                               ),
                               child: const Center(
                                 child: Text(
@@ -453,13 +471,15 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                             ),
                           ),
                           GestureDetector(
-                            onTap: pickImageFromGallery,
+                            onTap:
+                                pickImageFromGallery, // memilih gambar dari galeri
                             child: Container(
                               height: 40,
                               width: MediaQuery.of(context).size.width * 0.4,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                color: const Color.fromARGB(255, 115, 183, 86),
+                                color: const Color.fromARGB(255, 115, 183,
+                                    86), // warna latar belakang tombol
                               ),
                               child: const Center(
                                 child: Text(
@@ -483,7 +503,7 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                     child: IconButton(
                       onPressed: () {
                         setState(() {
-                          _showCamera = false;
+                          _showCamera = false; // menonaktifkan mode kamera
                         });
                       },
                       icon: const Icon(Icons.arrow_back),
@@ -493,28 +513,35 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
               ),
             ),
           if (!_showCamera)
-             const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'Tips Pengelolaan',
-              style: TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Tips Pengelolaan',
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
           if (!_showCamera)
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _fetchDataTips(),
+                future:
+                    _fetchDataTips(), // mendapatkan data tips secara asinkron
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                        child:
+                            CircularProgressIndicator()); // menampilkan loading jika data belum selesai diambil
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(
+                        child: Text(
+                            'Error: ${snapshot.error}')); // menampilkan pesan eror jika terjadi kesalahan
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No data available'));
+                    return const Center(
+                        child: Text(
+                            'No data available')); //menampilkan pesan jika data kosong
                   } else {
                     List<Map<String, dynamic>> daftarTips = snapshot.data!;
                     return ListView.builder(
@@ -537,89 +564,91 @@ class _DeteksiPenyakitPageContentState extends State<DeteksiPenyakitPageContent>
                               );
                             },
                             child: Card(
-                            elevation: 2,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Detail artikel
-                                  Text(
-                                    daftarTips[index]['judul'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    height: 150, // Tinggi gambar
-                                    width: double.infinity, // Lebar gambar mengikuti lebar layar
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: DecorationImage(
-                                        image: AssetImage(
-                                          daftarTips[index]['gambarUrl'],
-                                        ),
-                                        fit: BoxFit.cover,
+                              elevation: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Detail tips
+                                    Text(
+                                      daftarTips[index]
+                                          ['judul'], // menampilkan judul tips
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Klik untuk melihat detail',
-                                    style: TextStyle(
-                                      color: Colors.grey,
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      height: 150, // Tinggi gambar
+                                      width: double
+                                          .infinity, // Lebar gambar mengikuti lebar layar
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                          image: AssetImage(
+                                            daftarTips[index]['gambarUrl'],
+                                          ),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Klik untuk melihat detail',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-Future<List<Map<String, dynamic>>> _fetchDataTips() async {
-  List<Map<String, dynamic>> daftarTips = [];
-  CollectionReference dataTips =
-      FirebaseFirestore.instance.collection('data_tips');
+  Future<List<Map<String, dynamic>>> _fetchDataTips() async {
+    List<Map<String, dynamic>> daftarTips = [];
+    CollectionReference dataTips =
+        FirebaseFirestore.instance.collection('data_tips');
 
-  QuerySnapshot querySnapshot = await dataTips.get();
-  for (var doc in querySnapshot.docs) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    QuerySnapshot querySnapshot = await dataTips.get();
+    for (var doc in querySnapshot.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-    // Ambil data dari Firestore
-    String judulTips = data['judul'] ?? '';
-    String deskripsi = data['deskripsi'] ?? ''; // Ubah tipe data deskripsi menjadi String
+      // Ambil data dari Firestore
+      String judulTips = data['judul'] ?? '';
+      String deskripsi =
+          data['deskripsi'] ?? ''; // Ubah tipe data deskripsi menjadi String
 
-    // Tentukan alamat gambar berdasarkan judul artikel atau jenis artikel
-    String imagePath;
-    if (judulTips == 'Benih dan Persemaian') {
-      imagePath = 'assets/image/3.png';
-    } else if (judulTips == 'Pengolahan Tanah') {
-      imagePath = 'assets/image/4.png';
+      // Tentukan alamat gambar berdasarkan judul artikel atau jenis artikel
+      String imagePath;
+      if (judulTips == 'Benih dan Persemaian') {
+        imagePath = 'assets/image/3.png';
+      } else if (judulTips == 'Pengolahan Tanah') {
+        imagePath = 'assets/image/4.png';
+      } else {
+        // Default jika judul artikel tidak cocok dengan yang ditentukan
+        imagePath = 'assets/image/default_image.jpg';
+      }
+
+      daftarTips.add({
+        'judul': judulTips,
+        'gambarUrl': imagePath,
+        'deskripsi': deskripsi,
+      });
     }
-    else {
-      // Default jika judul artikel tidak cocok dengan yang ditentukan
-      imagePath = 'assets/image/default_image.jpg';
-    }
-
-    daftarTips.add({
-      'judul': judulTips,
-      'gambarUrl': imagePath,
-      'deskripsi': deskripsi,
-    });
+    return daftarTips;
   }
-  return daftarTips;
-}
-}
+} 
